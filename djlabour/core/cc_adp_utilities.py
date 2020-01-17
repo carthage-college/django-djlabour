@@ -13,10 +13,6 @@ from logging.handlers import SMTPHandler
 # django settings for script
 from django.conf import settings
 
-# from djequis.core.utils import sendmail
-# from djzbar.utils.informix import do_sql
-# from djzbar.utils.informix import get_engine
-
 DEBUG = settings.INFORMIX_DEBUG
 
 # set up command-line options
@@ -83,7 +79,8 @@ def fn_format_phone(phone):
 
 
 def WRITE_HEADER(filename):
-    with open(filename, 'wb') as file_out:
+    print("In write_header")
+    with open(filename, 'w') as file_out:
         # Write header row
         csvWriter = csv.writer(file_out)
         # These are the column headers that match CX, not ADP
@@ -131,7 +128,7 @@ def WRITE_ADP_HEADER(filename):
     csv.register_dialect('myDialect',
                          quoting=csv.QUOTE_ALL,
                          skipinitialspace=True)
-    with open(filename, 'wb') as file_out:
+    with open(filename, 'w') as file_out:
         # Write header row to match the ADP file
         csvWriter = csv.writer(file_out, dialect='myDialect')
         csvWriter.writerow(
@@ -320,7 +317,7 @@ def WRITE_ROW_REFORMATTED(filename, row):
             ])
 
     except Exception as e:
-        print("Error in cc_adp_utilities " + e.message)
+        print("Error in cc_adp_utilities " + repr(e))
     file_out.close()
 
 #########################################################
