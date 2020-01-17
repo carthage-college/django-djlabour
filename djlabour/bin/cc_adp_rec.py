@@ -35,7 +35,6 @@ os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
 os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
 os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
-
 # normally set as 'debug" in SETTINGS
 DEBUG = settings.INFORMIX_DEBUG
 
@@ -62,49 +61,49 @@ warnings.filterwarnings(action='ignore',module='.*paramiko.*')
 
 #sFTP fetch (GET) downloads the file from ADP file from server
 
-# def file_download():
-#     # print("Get ADP File")
-#     cnopts = pysftp.CnOpts()
-#     cnopts.hostkeys = None
-#     # cnopts.hostkeys = settings.ADP_HOSTKEY
-#     # External connection information for ADP Application server
-#     XTRNL_CONNECTION = {
-#        'host': settings.ADP_HOST,
-#        'username': settings.ADP_USER,
-#        'password': settings.ADP_PASS,
-#        'cnopts': cnopts
-#     }
-#     with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
-#         try:
-#             # print('Connection Established')
-#             sftp.chdir("adp/")
-#             # Remote Path is the ADP server and once logged in we fetch
-#             # directory listing
-#             remotepath = sftp.listdir()
-#             # Loop through remote path directory list
-#             # print("Remote Path = " + str(remotepath))
-#             for filename in remotepath:
-#                 remotefile = filename
-#                 # print("Remote File = " + str(remotefile))
-#                 # set local directory for which the ADP file will be
-#                 # downloaded to
-#                 local_dir = ('{0}'.format(
-#                     settings.ADP_CSV_OUTPUT
-#                 ))
-#                 localpath = local_dir + remotefile
-#                 # GET file from sFTP server and download it to localpath
-#                 sftp.get(remotefile, localpath)
-#                 #############################################################
-#                 # Delete original file %m_%d_%y_%h_%i_%s_Applications(%c).txt
-#                 # from sFTP (ADP) server
-#                 #############################################################
-#                 # sftp.remove(filename)
-#         except Exception as e:
-#             # print("Error in cc_adp_rec.py- File download, " + e.message)
-#             fn_write_error("Error in cc_adp_rec.py - File download, "
-#                            "adptocx.csv not found, " + e.message)
-#
-#     sftp.close()
+def file_download():
+    # print("Get ADP File")
+    cnopts = pysftp.CnOpts()
+    cnopts.hostkeys = None
+    # cnopts.hostkeys = settings.ADP_HOSTKEY
+    # External connection information for ADP Application server
+    XTRNL_CONNECTION = {
+       'host': settings.ADP_HOST,
+       'username': settings.ADP_USER,
+       'password': settings.ADP_PASS,
+       'cnopts': cnopts
+    }
+    with pysftp.Connection(**XTRNL_CONNECTION) as sftp:
+        try:
+            # print('Connection Established')
+            sftp.chdir("adp/")
+            # Remote Path is the ADP server and once logged in we fetch
+            # directory listing
+            remotepath = sftp.listdir()
+            # Loop through remote path directory list
+            # print("Remote Path = " + str(remotepath))
+            for filename in remotepath:
+                remotefile = filename
+                # print("Remote File = " + str(remotefile))
+                # set local directory for which the ADP file will be
+                # downloaded to
+                local_dir = ('{0}'.format(
+                    settings.ADP_CSV_OUTPUT
+                ))
+                localpath = local_dir + remotefile
+                # GET file from sFTP server and download it to localpath
+                sftp.get(remotefile, localpath)
+                #############################################################
+                # Delete original file %m_%d_%y_%h_%i_%s_Applications(%c).txt
+                # from sFTP (ADP) server
+                #############################################################
+                # sftp.remove(filename)
+        except Exception as e:
+            # print("Error in cc_adp_rec.py- File download, " + e.message)
+            fn_write_error("Error in cc_adp_rec.py - File download, "
+                           "adptocx.csv not found, " + e.message)
+
+    sftp.close()
 
 
 def main():
@@ -132,15 +131,12 @@ def main():
     # Create new diff file
 
     try:
-
         # set global variable
         global EARL
         # determines which database is being called from the command line
         if database == 'cars':
             EARL = settings.INFORMIX_ODBC
         if database == 'train':
-            EARL = settings.INFORMIX_ODBC_TRAIN
-        elif database == 'sandbox':
             EARL = settings.INFORMIX_ODBC_TRAIN
         else:
             # # this will raise an error when we call get_engine()
@@ -273,6 +269,8 @@ def main():
                         # try:
 
                         verifyqry = Q_CC_ADP_VERIFY(row)
+                        # print(verifyqry)
+                        # break
 
                         connection = get_connection(EARL)
                         with connection:
@@ -281,29 +279,26 @@ def main():
                                 key=settings.INFORMIX_DEBUG
                             ).fetchall()
                         ret = list(data_result)
+                        print(ret)
+                        # if ret is None:
+                        if len(ret) == 0:
+                            print("No Matching Record found - Insert")
+                            ##############################################
+                            # STEP 4b--
+                            # Write entire row to cc_adp_rec table
+                            ##############################################
+                            try:
+                                INS_CC_ADP_REC(row, EARL)
+                                print("Insert")
+                            except Exception as e:
+                                fn_write_error("Error in adptcx.py while "
+                                               "inserting into cc_adp_rec "
+                                               "Error = " + repr(e))
+                                continue
+                                # print("ERROR = " + e.message)
+                        else:
+                            print("Found Record - do not insert duplicate")
 
-                        print("sql_val = " + str(sql_val))
-                        if ret is not None:
-                            row1 = data_result.fetchone()
-                            if row1 is None:
-                                # print("No Matching Record found - Insert")
-
-                                ##############################################
-                                # STEP 4b--
-                                # Write entire row to cc_adp_rec table
-                                ##############################################
-                                try:
-                                    INS_CC_ADP_REC(row, EARL)
-                                    print("Insert")
-                                except Exception as e:
-                                    fn_write_error("Error in adptcx.py while "
-                                                   "inserting into cc_adp_rec "
-                                                   "Error = " + e.message)
-                                    continue
-                                    # print("ERROR = " + e.message)
-                            # else:
-                                # print("Found Record - do not insert
-                                #       duplicate")
             except Exception as e:
                 # print(repr(e))
                 fn_write_error("Error in cc_adp_rec.py Step 4, Error = " + repr(e))
@@ -311,7 +306,7 @@ def main():
                 #          "Error in cc_adp_rec.py, Error = " + repr(e),
                 #          "Error in cc_adp_rec.py")
 
-            f.close()
+        f.close()
 
     except Exception as e:
         print("Error in cc_adp_rec.py, Error = " + repr(e))
