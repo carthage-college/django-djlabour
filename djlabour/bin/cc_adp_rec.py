@@ -20,6 +20,10 @@ django.setup()
 
 # django settings for script
 from django.conf import settings
+from djimix.core.utils import get_connection, xsql
+from djlabour.sql.cc_adp_sql import CX_VIEW_SQL, Q_CC_ADP_VERIFY, INS_CC_ADP_REC
+from djlabour.core.cc_adp_utilities import WRITE_ADP_HEADER, WRITE_HEADER, \
+    WRITE_ROW_REFORMATTED, fn_write_error
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -28,20 +32,9 @@ os.environ['INFORMIXDIR'] = settings.INFORMIXDIR
 os.environ['ODBCINI'] = settings.ODBCINI
 os.environ['ONCONFIG'] = settings.ONCONFIG
 os.environ['INFORMIXSQLHOSTS'] = settings.INFORMIXSQLHOSTS
+os.environ['LD_LIBRARY_PATH'] = settings.LD_LIBRARY_PATH
+os.environ['LD_RUN_PATH'] = settings.LD_RUN_PATH
 
-from djlabour.sql.cc_adp_sql import CX_VIEW_SQL, Q_CC_ADP_VERIFY, INS_CC_ADP_REC
-from djlabour.core.cc_adp_utilities import WRITE_ADP_HEADER, WRITE_HEADER, \
-    WRITE_ROW_REFORMATTED, fn_write_error
-
-# from djequis.core.utils import sendmail
-# from djzbar.utils.informix import get_engine
-# from djzbar.utils.informix import do_sql
-# from djzbar.settings import INFORMIX_EARL_SANDBOX
-# from djzbar.settings import INFORMIX_EARL_TEST
-# from djzbar.settings import INFORMIX_EARL_PROD
-# from djtools.fields import TODAY
-# from djequis.adp.utilities import fn_validate_field, fn_format_phone
-# from djequis.adp.adp_ftp import file_download
 
 # normally set as 'debug" in SETTINGS
 DEBUG = settings.INFORMIX_DEBUG
@@ -124,8 +117,12 @@ def main():
     ##########################################################################
 
     # # Defines file names and directory location
-    new_adp_file = settings.ADP_CSV_OUTPUT + "ADPtoCX.csv"
-    last_adp_file = settings.ADP_CSV_OUTPUT + "adptocxview.csv"
+
+    # For testing use last file
+    new_adp_file = settings.ADP_CSV_OUTPUT + "ADPtoCXLast.csv"
+
+    # new_adp_file = settings.ADP_CSV_OUTPUT + "ADPtoCX.csv"
+    adp_view_file = settings.ADP_CSV_OUTPUT + "adptocxview.csv"
     adp_diff_file = settings.ADP_CSV_OUTPUT + "different.csv"
     adptocx_reformatted = settings.ADP_CSV_OUTPUT + "ADPtoCX_Reformatted.csv"
 
@@ -135,31 +132,32 @@ def main():
     # Create new diff file
 
     try:
+
         # set global variable
         global EARL
         # determines which database is being called from the command line
         if database == 'cars':
-            EARL = INFORMIX_ODBC
+            EARL = settings.INFORMIX_ODBC
         if database == 'train':
-            EARL = INFORMIX_ODBC_TRAIN
+            EARL = settings.INFORMIX_ODBC_TRAIN
         elif database == 'sandbox':
-            EARL = INFORMIX_ODBC_TRAIN
+            EARL = settings.INFORMIX_ODBC_TRAIN
         else:
-            # this will raise an error when we call get_engine()
+            # # this will raise an error when we call get_engine()
             # below but the argument parser should have taken
             # care of this scenario and we will never arrive here.
             EARL = None
-        # establish database connection
-        engine = get_engine(EARL)
+            # establish database connection
+        print(EARL)
 
         #################################################################
         # STEP 0--
         # Pull the file from the ADP FTP site
         # execute sftp code that needs to be executed in production only
         #################################################################
-        if not test:
-            file_download()
-            # print("file downloaded")
+        # if not test:
+        #     file_download()
+        #     # print("file downloaded")
 
         #################################################################
         # STEP 1--
@@ -176,8 +174,6 @@ def main():
         #################################################################
         with codecs.open(new_adp_file, 'r',
                          encoding='utf-8-sig') as f:
-
-        # with open(new_adp_file, 'r') as f:
             d_reader = csv.DictReader(f, delimiter=',')
             for row in d_reader:
                 WRITE_ROW_REFORMATTED(adptocx_reformatted, row)
@@ -190,11 +186,16 @@ def main():
         # the data that is currently in cc_adp_rec so we know we are current
         #################################################################
         WRITE_ADP_HEADER(settings.ADP_CSV_OUTPUT + "adptocxview.csv")
-        data_result = engine.execute(CX_VIEW_SQL)
-        ret = list(data_result.fetchall())
-        # print("SQL Successful")
 
-        with open(last_adp_file, 'a') as file_out:
+        connection = get_connection(EARL)
+        with connection:
+            data_result = xsql(
+                CX_VIEW_SQL, connection,
+                key=settings.INFORMIX_DEBUG
+            ).fetchall()
+        ret = list(data_result)
+
+        with open(adp_view_file, 'a') as file_out:
             csvWriter = csv.writer(file_out, delimiter=',',
                                    dialect='myDialect')
             for row in ret:
@@ -207,7 +208,7 @@ def main():
         # into the comparison - needed because of extra characters in header
         WRITE_HEADER(adp_diff_file)
         with codecs.open(adptocx_reformatted, 'r',
-                        encoding='utf-8-sig') as t1, codecs.open(last_adp_file,
+                        encoding='utf-8-sig') as t1, codecs.open(adp_view_file,
                 'r', encoding='utf-8-sig') as t2:
 
             newfile = t1.readlines()
@@ -237,9 +238,9 @@ def main():
 
             try:
                 for row in d_reader:
-                    # print('carthid = {0}, '
-                    #       'Fullname = {1}'.format(row["carth_id"],
-                    #                                    row["payroll_name"]))
+                    print('carthid = {0}, '
+                          'Fullname = {1}'.format(row["carth_id"],
+                                                       row["payroll_name"]))
                     # print('Birthdate = ' + row["birth_date"])
                     if row["carth_id"] == "":
                         SUBJECT = 'No Carthage ID'
@@ -273,10 +274,17 @@ def main():
 
                         verifyqry = Q_CC_ADP_VERIFY(row)
 
-                        sql_val = do_sql(verifyqry, key=DEBUG, earl=EARL)
-                        # print("sql_val = " + str(sql_val))
-                        if sql_val is not None:
-                            row1 = sql_val.fetchone()
+                        connection = get_connection(EARL)
+                        with connection:
+                            data_result = xsql(
+                                verifyqry, connection,
+                                key=settings.INFORMIX_DEBUG
+                            ).fetchall()
+                        ret = list(data_result)
+
+                        print("sql_val = " + str(sql_val))
+                        if ret is not None:
+                            row1 = data_result.fetchone()
                             if row1 is None:
                                 # print("No Matching Record found - Insert")
 
@@ -286,7 +294,7 @@ def main():
                                 ##############################################
                                 try:
                                     INS_CC_ADP_REC(row, EARL)
-                                    # print("Insert")
+                                    print("Insert")
                                 except Exception as e:
                                     fn_write_error("Error in adptcx.py while "
                                                    "inserting into cc_adp_rec "
@@ -298,10 +306,10 @@ def main():
                                 #       duplicate")
             except Exception as e:
                 # print(repr(e))
-                fn_write_error("Error in cc_adp_rec.py, Error = " + repr(e))
-                sendmail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
-                         "Error in cc_adp_rec.py, Error = " + repr(e),
-                         "Error in cc_adp_rec.py")
+                fn_write_error("Error in cc_adp_rec.py Step 4, Error = " + repr(e))
+                # sendmail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+                #          "Error in cc_adp_rec.py, Error = " + repr(e),
+                #          "Error in cc_adp_rec.py")
 
             f.close()
 
