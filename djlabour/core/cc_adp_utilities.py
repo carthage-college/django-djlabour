@@ -75,7 +75,7 @@ def fn_format_phone(phone):
             return ""
     except Exception as e:
         fn_write_error("Error in cc_adp_utilities.py - fn_format_phone.  Error = "
-                       + e.message)
+                       + repr(e))
 
 
 def WRITE_HEADER(filename):
