@@ -1,5 +1,6 @@
 # from sqlalchemy import text
 from djlabour.core.cc_adp_utilities import fn_format_phone, fn_convert_date
+import datetime
 from datetime import datetime
 from djimix.core.utils import get_connection, xsql
 
@@ -12,54 +13,54 @@ CX_VIEW_SQL = '''  SELECT
     file_no, carthage_id, lastname, firstname, middlename, 
     salutation, fullname, 
     pref_name, birth_date, gender, marital_status, 
-	race,
+    race,
     race_descr, hispanic, 
     race_id_method, personal_email, primary_addr_line1, 
     primary_addr_line2, 
     primary_addr_line3, primary_addr_city, primary_addr_st, 
     primary_addr_state, 
-	primary_addr_zip, primary_addr_county, primary_addr_country, 
-	primary_addr_country_code, primary_addr_as_legal, home_phone, 
-	cell_phone, 
-	work_phone, work_contact_phone, work_contact_email, 
-	work_contact_notification, legal_addr_line1, legal_addr_line2, 
-	legal_addr_line3, legal_addr_city, legal_addr_st, 
-	legal_addr_state, 
-	legal_addr_zip, legal_addr_county, legal_addr_country, 
-	legal_addr_country_code, ssn, hire_date, hire_rehire_date, 
-	rehire_date, 
-	position_start_date, position_effective_date, 
-	position_effective_end_date, 
-	termination_date, position_status, status_effective_date, 
-	status_effective_end_date, adjusted_service_date, 
-	archived_employee, 
-	position_id, primary_position, payroll_company_code, 
-	payroll_company_name, 
-	cip_code, worker_category_code, worker_category_descr, 
-	job_title_code, 
-	job_title_descr, home_cost_number_code, home_cost_number_descr, 
-	job_class_code, job_class_descr, job_descr, job_function_code, 
-	job_function_descr, room, bldg, bldg_name, 
-	leave_of_absence_start_date, 
-	leave_of_absence_return_date, home_depart_num_code, 
-	home_depart_num_descr, 
-	supervisor_id, supervisor_firstname, supervisor_lastname, 
-	business_unit_code, business_unit_descr, reports_to_name, 
-	reports_to_position_id, reports_to_associate_id, 
-	employee_associate_id, 
-	management_position, supervisor_flag, long_title
+    primary_addr_zip, primary_addr_county, primary_addr_country, 
+    primary_addr_country_code, primary_addr_as_legal, home_phone, 
+    cell_phone, 
+    work_phone, work_contact_phone, work_contact_email, 
+    work_contact_notification, legal_addr_line1, legal_addr_line2, 
+    legal_addr_line3, legal_addr_city, legal_addr_st, 
+    legal_addr_state, 
+    legal_addr_zip, legal_addr_county, legal_addr_country, 
+    legal_addr_country_code, ssn, hire_date, hire_rehire_date, 
+    rehire_date, 
+    position_start_date, position_effective_date, 
+    position_effective_end_date, 
+    termination_date, position_status, status_effective_date, 
+    status_effective_end_date, adjusted_service_date, 
+    archived_employee, 
+    position_id, primary_position, payroll_company_code, 
+    payroll_company_name, 
+    cip_code, worker_category_code, worker_category_descr, 
+    job_title_code, 
+    job_title_descr, home_cost_number_code, home_cost_number_descr, 
+    job_class_code, job_class_descr, job_descr, job_function_code, 
+    job_function_descr, room, bldg, bldg_name, 
+    leave_of_absence_start_date, 
+    leave_of_absence_return_date, home_depart_num_code, 
+    home_depart_num_descr, 
+    supervisor_id, supervisor_firstname, supervisor_lastname, 
+    business_unit_code, business_unit_descr, reports_to_name, 
+    reports_to_position_id, reports_to_associate_id, 
+    employee_associate_id, 
+    management_position, supervisor_flag, long_title
 FROM
 cc_adp_rec
 where date_stamp in
-	(select datestamp from
-		(select carthage_id, fullname, termination_date,
-		 max(date_stamp) as datestamp
-		from cc_adp_rec
-		where (termination_date > "01/01/"||TO_CHAR(YEAR(TODAY)) 
-		    or termination_date is null)
-		group by carthage_id, fullname, termination_date
-		)
-	)
+    (select datestamp from
+        (select carthage_id, fullname, termination_date,
+         max(date_stamp) as datestamp
+        from cc_adp_rec
+    where (termination_date > "01/01/"||TO_CHAR(YEAR(TODAY)) 
+            or termination_date is null)
+        group by carthage_id, fullname, termination_date
+        )
+    )
 	 '''
 
 
@@ -116,7 +117,7 @@ def Q_CC_ADP_VERIFY(row):
        AND salutation = "{5}"
        AND fullname = "{6}"
        AND pref_name = "{7}"
-       AND birth_date = "{8}"
+       AND NVL(birth_date, "") = "{8}"
        AND gender = "{9}"
        AND marital_status = "{10}"
        AND race = "{11}"
@@ -152,16 +153,16 @@ def Q_CC_ADP_VERIFY(row):
        AND legal_addr_country = "{41}"
        AND legal_addr_country_code = "{42}"
        AND ssn = "{43}"
-       AND hire_date = "{44}"
-       AND hire_rehire_date = "{45}"
-       AND rehire_date = "{46}"
-       AND position_start_date = "{47}"
-       AND position_effective_date = "{48}"
-       AND position_effective_end_date = "{49}"
-       AND termination_date = "{50}"
+       AND NVL(hire_date, "") = "{44}"
+       AND NVL(hire_rehire_date, "") = "{45}"
+       AND NVL(rehire_date, "") = "{46}"
+       AND NVL(position_start_date, "") = "{47}"
+       AND NVL(position_effective_date, "") = "{48}"
+       AND NVL(position_effective_end_date, "") = "{49}"
+       AND NVL(termination_date, "") = "{50}"
        AND position_status = "{51}"
-       AND status_effective_date = "{52}"
-       AND status_effective_end_date = "{53}"
+       AND NVL(status_effective_date, "") = "{52}"
+       AND NVL(status_effective_end_date, "") = "{53}"
        AND NVL(adjusted_service_date,"") = "{54}"
        AND archived_employee = "{55}"
        AND position_id = "{56}"
@@ -291,8 +292,8 @@ def Q_CC_ADP_VERIFY(row):
     return(QUERY)
 
 def INS_CC_ADP_REC(row, EARL):
-    # print("Start Insert Query")
-    engine = get_engine(EARL)
+    print("Start Insert Query")
+    # engine = get_engine(EARL)
     q_cc_adp_rec = ("INSERT INTO cc_adp_rec (file_no, \
         carthage_id, lastname, firstname, middlename, \
         salutation, fullname, pref_name, birth_date, \
@@ -402,11 +403,20 @@ def INS_CC_ADP_REC(row, EARL):
         row["reports_to_assoc_id"],
         row["employee_assoc_id"],
         row["management_position"],
-        row["supervisor_flag"], row["long_title"],
-        datetime.now())
-    # print(cc_adp_args)
+        row["supervisor_flag"], row["long_title"], CURRENT
+                   )
 
-    engine.execute(q_cc_adp_rec, cc_adp_args)
+    print(cc_adp_args)
+
+    # engine.execute(q_cc_adp_rec, cc_adp_args)
+
+    connection = get_connection(EARL)
+    with connection:
+        cur = connection.cursor()
+        cur.execute(q_cc_adp_rec, cc_adp_args)
+
+    print("Finish Insert")
+
     # scr.write(q_cc_adp_rec + '\n' + str(cc_adp_args) + '\n');
     # fn_write_log("Inserted data into cc_adp_rec table for "
     #              + row["payroll_name"] + " ID = "
