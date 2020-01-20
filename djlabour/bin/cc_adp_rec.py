@@ -21,7 +21,8 @@ django.setup()
 # django settings for script
 from django.conf import settings
 from djimix.core.utils import get_connection, xsql
-from djlabour.sql.cc_adp_sql import CX_VIEW_SQL, Q_CC_ADP_VERIFY, INS_CC_ADP_REC
+from djlabour.sql.cc_adp_sql import CX_VIEW_SQL, Q_CC_ADP_VERIFY, \
+    INS_CC_ADP_REC
 from djlabour.core.cc_adp_utilities import WRITE_ADP_HEADER, WRITE_HEADER, \
     WRITE_ROW_REFORMATTED, fn_write_error
 
@@ -151,9 +152,9 @@ def main():
         # Pull the file from the ADP FTP site
         # execute sftp code that needs to be executed in production only
         #################################################################
-        # if not test:
-        #     file_download()
-        #     # print("file downloaded")
+        if not test:
+            file_download()
+            # print("file downloaded")
 
         #################################################################
         # STEP 1--
@@ -279,7 +280,7 @@ def main():
                                 key=settings.INFORMIX_DEBUG
                             ).fetchall()
                         ret = list(data_result)
-                        print(ret)
+                        # print(ret)
                         # if ret is None:
                         if len(ret) == 0:
                             print("No Matching Record found - Insert")
