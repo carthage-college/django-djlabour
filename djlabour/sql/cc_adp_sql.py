@@ -2,6 +2,7 @@
 from djlabour.core.cc_adp_utilities import fn_format_phone, fn_convert_date
 import datetime
 from datetime import datetime
+from time import strftime
 from djimix.core.utils import get_connection, xsql
 
 # django settings for script
@@ -292,8 +293,13 @@ def Q_CC_ADP_VERIFY(row):
     return(QUERY)
 
 def INS_CC_ADP_REC(row, EARL):
-    print("Start Insert Query")
-    # engine = get_engine(EARL)
+    # print("Start Insert Query")
+
+    """Informix is very picky about the timestamp format"""
+    formatted_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S.") + \
+                  datetime.now().strftime("%f")[:5]
+    # print(formatted_time)
+
     q_cc_adp_rec = ("INSERT INTO cc_adp_rec (file_no, \
         carthage_id, lastname, firstname, middlename, \
         salutation, fullname, pref_name, birth_date, \
@@ -403,19 +409,14 @@ def INS_CC_ADP_REC(row, EARL):
         row["reports_to_assoc_id"],
         row["employee_assoc_id"],
         row["management_position"],
-        row["supervisor_flag"], row["long_title"], CURRENT
-                   )
+        row["supervisor_flag"], row["long_title"], formatted_time )
 
-    print(cc_adp_args)
-
-    # engine.execute(q_cc_adp_rec, cc_adp_args)
+    # print(cc_adp_args)
 
     connection = get_connection(EARL)
     with connection:
         cur = connection.cursor()
         cur.execute(q_cc_adp_rec, cc_adp_args)
-
-    print("Finish Insert")
 
     # scr.write(q_cc_adp_rec + '\n' + str(cc_adp_args) + '\n');
     # fn_write_log("Inserted data into cc_adp_rec table for "
