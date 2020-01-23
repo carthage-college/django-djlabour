@@ -119,9 +119,9 @@ def main():
     # # Defines file names and directory location
 
     # For testing use last file
-    new_adp_file = settings.ADP_CSV_OUTPUT + "ADPtoCXLast.csv"
+    # new_adp_file = settings.ADP_CSV_OUTPUT + "ADPtoCXLast.csv"
+    new_adp_file = settings.ADP_CSV_OUTPUT + "ADPtoCX.csv"
 
-    # new_adp_file = settings.ADP_CSV_OUTPUT + "ADPtoCX.csv"
     adp_view_file = settings.ADP_CSV_OUTPUT + "adptocxview.csv"
     adp_diff_file = settings.ADP_CSV_OUTPUT + "different.csv"
     adptocx_reformatted = settings.ADP_CSV_OUTPUT + "ADPtoCX_Reformatted.csv"
@@ -129,7 +129,6 @@ def main():
     # First remove yesterdays file of updates
     if os.path.isfile(adp_diff_file):
         os.remove(adp_diff_file)
-    # Create new diff file
 
     try:
         # set global variable
@@ -145,12 +144,12 @@ def main():
             # care of this scenario and we will never arrive here.
             EARL = None
             # establish database connection
-        print(EARL)
+        # print(EARL)
 
         #################################################################
         # STEP 0--
         # Pull the file from the ADP FTP site
-        # execute sftp code that needs to be executed in production only
+        # execute sftp code in production only
         #################################################################
         if not test:
             file_download()
@@ -235,9 +234,9 @@ def main():
 
             try:
                 for row in d_reader:
-                    print('carthid = {0}, '
-                          'Fullname = {1}'.format(row["carth_id"],
-                                                       row["payroll_name"]))
+                    # print('carthid = {0}, '
+                    #       'Fullname = {1}'.format(row["carth_id"],
+                    #                                    row["payroll_name"]))
                     # print('Birthdate = ' + row["birth_date"])
                     if row["carth_id"] == "":
                         SUBJECT = 'No Carthage ID'
@@ -283,14 +282,13 @@ def main():
                         # print(ret)
                         # if ret is None:
                         if len(ret) == 0:
-                            print("No Matching Record found - Insert")
+                            # print("No Matching Record found - Insert")
                             ##############################################
                             # STEP 4b--
                             # Write entire row to cc_adp_rec table
                             ##############################################
                             try:
                                 INS_CC_ADP_REC(row, EARL)
-                                print("Insert")
                             except Exception as e:
                                 fn_write_error("Error in adptcx.py while "
                                                "inserting into cc_adp_rec "
@@ -298,7 +296,8 @@ def main():
                                 continue
                                 # print("ERROR = " + e.message)
                         else:
-                            print("Found Record - do not insert duplicate")
+                            pass
+                            # print("Found Record - do not insert duplicate")
 
             except Exception as e:
                 # print(repr(e))
