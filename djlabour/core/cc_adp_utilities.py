@@ -31,13 +31,11 @@ logger = logging.getLogger(__name__)
 
 
 def fn_convert_date(date):
-    # print(date)
     if date != "":
         ndate = datetime.strptime(date, "%Y-%m-%d")
         retdate = datetime.strftime(ndate, "%m/%d/%Y")
     else:
         retdate = ''
-    # print(str(date) + ',' + str(retdate))
     return retdate
 
 
@@ -47,7 +45,6 @@ def fn_informx_date(date):
         retdate = datetime.strftime(ndate, "%Y-%m-%d")
     else:
         retdate = None
-    # print(retdate)
     return retdate
 #########################################################
 # Common function to format phone for CX
@@ -64,12 +61,7 @@ def fn_format_phone(phone):
             areacode =  ph[0:3]
             prefix = ph[3:6]
             number = ph[6:10]
-                 # +phone[6:9]+phone[10:14]
-            # print("Area Code = " + areacode)
-            # print("Prefix = " + prefix)
-            # print("Number = " + number)
             v = areacode + '-' + prefix + '-' + number
-            # print(v)
             return v
         else:
             return ""
@@ -79,7 +71,6 @@ def fn_format_phone(phone):
 
 
 def WRITE_HEADER(filename):
-    print("In write_header")
     with open(filename, 'w') as file_out:
         # Write header row
         csvWriter = csv.writer(file_out)
@@ -124,7 +115,6 @@ def WRITE_HEADER(filename):
 
 
 def WRITE_ADP_HEADER(filename):
-    # print(filename)
     csv.register_dialect('myDialect',
                          quoting=csv.QUOTE_ALL,
                          skipinitialspace=True)
@@ -187,12 +177,6 @@ def WRITE_ADP_HEADER(filename):
 
 def WRITE_ROW_REFORMATTED(filename, row):
     try:
-        # print(str(row[0]))
-        # print('carthid = {0}, Fullname = {1}'.format(row["Carthage ID"],
-        #                                              row[
-        #                                                  "payroll_name"]))
-        # print("Use as legal {0}".format(row[
-        # "primary_legal_address"]))
         ethnic_code = {
             'Not Hispanic or Latino': 'N',
             'Hispanic or Latino': 'Y'
@@ -216,8 +200,6 @@ def WRITE_ROW_REFORMATTED(filename, row):
         race = racecode.get(row["Race Code"])
         if race is None:
             race = ""
-        # print("Race = " + str(race))
-        # print(row["File Number"])
         csv.register_dialect('myDialect',
                              quoting=csv.QUOTE_ALL,
                              skipinitialspace=True)
@@ -317,7 +299,11 @@ def WRITE_ROW_REFORMATTED(filename, row):
             ])
 
     except Exception as e:
-        print("Error in cc_adp_utilities " + repr(e))
+        fn_write_error(
+            "Error in cc_adp_utilities.py - WRITE_ROW_REFORMATTED.  Error = "
+            + repr(e))
+
+        # print("Error in cc_adp_utilities " + repr(e))
     file_out.close()
 
 #########################################################
@@ -362,17 +348,3 @@ def fn_clear_logger():
 #     # fn_clear_logger()
 #     return("Message logged")
 
-#
-# # def sample_function(secret_parameter):
-# #     logger = logging.getLogger(__name__)  # __name__=projectA.moduleB
-# #     logger.debug("Going to perform magic with '%s'",  secret_parameter)
-# #
-# #     try:
-# #         result = print(secret_parameter)
-# #     except IndexError:
-# #         logger.exception("OMG it happened again, someone please tell Laszlo")
-# #     except:
-# #         logger.info("Unexpected exception", exc_info=True)
-# #         raise
-# #     else:
-# #         logger.info("Magic with '%s' resulted in '%s'", secret_parameter, result, stack_info=True)
