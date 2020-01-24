@@ -7,59 +7,48 @@ from djimix.core.utils import get_connection, xsql
 
 # django settings for script
 from django.conf import settings
-
-
 # This select statement should only return the most recent records
-CX_VIEW_SQL = '''  SELECT
-    file_no, carthage_id, lastname, firstname, middlename, 
-    salutation, fullname, 
-    pref_name, birth_date, gender, marital_status, 
-    race,
-    race_descr, hispanic, 
-    race_id_method, personal_email, primary_addr_line1, 
-    primary_addr_line2, 
-    primary_addr_line3, primary_addr_city, primary_addr_st, 
-    primary_addr_state, 
-    primary_addr_zip, primary_addr_county, primary_addr_country, 
-    primary_addr_country_code, primary_addr_as_legal, home_phone, 
-    cell_phone, 
-    work_phone, work_contact_phone, work_contact_email, 
-    work_contact_notification, legal_addr_line1, legal_addr_line2, 
-    legal_addr_line3, legal_addr_city, legal_addr_st, 
-    legal_addr_state, 
-    legal_addr_zip, legal_addr_county, legal_addr_country, 
-    legal_addr_country_code, ssn, hire_date, hire_rehire_date, 
-    rehire_date, 
-    position_start_date, position_effective_date, 
-    position_effective_end_date, 
-    termination_date, position_status, status_effective_date, 
-    status_effective_end_date, adjusted_service_date, 
-    archived_employee, 
-    position_id, primary_position, payroll_company_code, 
-    payroll_company_name, 
-    cip_code, worker_category_code, worker_category_descr, 
-    job_title_code, 
-    job_title_descr, home_cost_number_code, home_cost_number_descr, 
-    job_class_code, job_class_descr, job_descr, job_function_code, 
-    job_function_descr, room, bldg, bldg_name, 
-    leave_of_absence_start_date, 
-    leave_of_absence_return_date, home_depart_num_code, 
-    home_depart_num_descr, 
-    supervisor_id, supervisor_firstname, supervisor_lastname, 
-    business_unit_code, business_unit_descr, reports_to_name, 
-    reports_to_position_id, reports_to_associate_id, 
-    employee_associate_id, 
-    management_position, supervisor_flag, long_title
+CX_VIEW_SQL = '''   SELECT
+    trim(file_no), carthage_id, trim(lastname), trim(firstname), 
+    trim(middlename), trim(salutation), trim(fullname), trim(pref_name), 
+    birth_date, trim(gender), trim(marital_status), trim(race), 
+    trim(race_descr), trim(hispanic), trim(race_id_method), 
+    trim(personal_email), trim(primary_addr_line1), trim(primary_addr_line2), 
+    trim(primary_addr_line3), trim(primary_addr_city), trim(primary_addr_st),
+    trim(primary_addr_state), trim(primary_addr_zip), primary_addr_county, 
+    primary_addr_country, trim(primary_addr_country_code), 
+    trim(primary_addr_as_legal), trim(home_phone), trim(cell_phone),
+    trim(work_phone), trim(work_contact_phone), trim(work_contact_email), 
+    trim(work_contact_notification), trim(legal_addr_line1), 
+    trim(legal_addr_line2), trim(legal_addr_line3), trim(legal_addr_city), 
+    trim(legal_addr_st), trim(legal_addr_state), trim(legal_addr_zip), 
+    trim(legal_addr_county), trim(legal_addr_country), 
+    trim(legal_addr_country_code), trim(ssn), hire_date, hire_rehire_date, 
+    rehire_date, position_start_date, position_effective_date, 
+    position_effective_end_date, termination_date, trim(position_status), 
+    status_effective_date, status_effective_end_date, adjusted_service_date, 
+    trim(archived_employee), trim(position_id), trim(primary_position), 
+    trim(payroll_company_code), trim(payroll_company_name), trim(cip_code), 
+    trim(worker_category_code), trim(worker_category_descr), 
+    trim(job_title_code), trim(job_title_descr), trim(home_cost_number_code), 
+    trim(home_cost_number_descr), trim(job_class_code), trim(job_class_descr), 
+    trim(job_descr), trim(job_function_code), trim(job_function_descr), 
+    trim(room), trim(bldg), trim(bldg_name), leave_of_absence_start_date, 
+    leave_of_absence_return_date, trim(home_depart_num_code), 
+    trim(home_depart_num_descr), trim(supervisor_id), 
+    trim(supervisor_firstname), trim(supervisor_lastname), 
+    trim(business_unit_code), trim(business_unit_descr), trim(reports_to_name), 
+    trim(reports_to_position_id), trim(reports_to_associate_id), 
+    trim(employee_associate_id), trim(management_position), 
+    trim(supervisor_flag), trim(long_title)
 FROM
 cc_adp_rec
 where date_stamp in
     (select datestamp from
-        (select carthage_id, fullname, termination_date,
+        (select carthage_id, fullname, 
          max(date_stamp) as datestamp
         from cc_adp_rec
-    where (termination_date > "01/01/"||TO_CHAR(YEAR(TODAY)) 
-            or termination_date is null)
-        group by carthage_id, fullname, termination_date
+        group by carthage_id, fullname
         )
     )
 	 '''
@@ -201,6 +190,8 @@ def Q_CC_ADP_VERIFY(row):
        AND management_position = "{88}"
        AND supervisor_flag = "{89}"
        AND long_title = "{90}"            
+       AND date_stamp = (select max(date_stamp) 
+       from cc_adp_rec where carthage_id = {1})
        order by date_stamp
        limit 1
        '''.format(row["file_number"],
