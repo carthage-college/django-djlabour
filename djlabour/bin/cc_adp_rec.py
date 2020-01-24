@@ -3,7 +3,7 @@ import sys
 import pysftp
 import csv
 import codecs
-import warnings
+# import warnings
 from datetime import datetime
 import time
 from time import strftime
@@ -23,8 +23,8 @@ from django.conf import settings
 from djimix.core.utils import get_connection, xsql
 from djlabour.sql.cc_adp_sql import CX_VIEW_SQL, Q_CC_ADP_VERIFY, \
     INS_CC_ADP_REC
-from djlabour.core.cc_adp_utilities import WRITE_ADP_HEADER, WRITE_HEADER, \
-    WRITE_ROW_REFORMATTED, fn_write_error
+from djlabour.core.cc_adp_utilities import fn_write_adp_header, \
+    fn_write_header, fn_write_row_reformatted, fn_write_error, fn_send_mail
 
 # informix environment
 os.environ['INFORMIXSERVER'] = settings.INFORMIXSERVER
@@ -58,7 +58,7 @@ parser.add_argument(
 )
 
 # This is a hack to get rid of a warning message paramico, cryptography
-warnings.filterwarnings(action='ignore',module='.*paramiko.*')
+# warnings.filterwarnings(action='ignore',module='.*paramiko.*')
 
 #sFTP fetch (GET) downloads the file from ADP file from server
 
@@ -119,8 +119,8 @@ def main():
     # # Defines file names and directory location
 
     # For testing use last file
-    # new_adp_file = settings.ADP_CSV_OUTPUT + "ADPtoCXLast.csv"
-    new_adp_file = settings.ADP_CSV_OUTPUT + "ADPtoCX.csv"
+    new_adp_file = settings.ADP_CSV_OUTPUT + "ADPtoCXLast.csv"
+    # new_adp_file = settings.ADP_CSV_OUTPUT + "ADPtoCX.csv"
 
     adp_view_file = settings.ADP_CSV_OUTPUT + "adptocxview.csv"
     adp_diff_file = settings.ADP_CSV_OUTPUT + "different.csv"
@@ -160,7 +160,7 @@ def main():
         # Get the most recent rows from the cc_adp_rec table and write them
         # to a csv file to locate Read files and write out differences
         #################################################################
-        WRITE_ADP_HEADER(adptocx_reformatted)
+        fn_write_adp_header(adptocx_reformatted)
 
         #################################################################
         # NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW NEW
@@ -172,16 +172,16 @@ def main():
                          encoding='utf-8-sig') as f:
             d_reader = csv.DictReader(f, delimiter=',')
             for row in d_reader:
-                WRITE_ROW_REFORMATTED(adptocx_reformatted, row)
+                fn_write_row_reformatted(adptocx_reformatted, row)
         f.close()
-        # print("Created Reformatted file")
+        print("Created Reformatted file")
 
         #################################################################
         # STEP 3--
         # Instead of using the ADP last file for comparison, use instead
         # the data that is currently in cc_adp_rec so we know we are current
         #################################################################
-        WRITE_ADP_HEADER(settings.ADP_CSV_OUTPUT + "adptocxview.csv")
+        fn_write_adp_header(settings.ADP_CSV_OUTPUT + "adptocxview.csv")
 
         connection = get_connection(EARL)
         with connection:
@@ -197,12 +197,14 @@ def main():
             for row in ret:
                 csvWriter.writerow(row)
         file_out.close()
+        print("Created view file")
 
         #################################################################
         # Read in both files and compare
         # the codecs function prevents the header from ADP getting
         # into the comparison - needed because of extra characters in header
-        WRITE_HEADER(adp_diff_file)
+        #################################################################
+        fn_write_header(adp_diff_file)
         with codecs.open(adptocx_reformatted, 'r',
                         encoding='utf-8-sig') as t1, codecs.open(adp_view_file,
                 'r', encoding='utf-8-sig') as t2:
@@ -234,9 +236,9 @@ def main():
 
             try:
                 for row in d_reader:
-                    # print('carthid = {0}, '
-                    #       'Fullname = {1}'.format(row["carth_id"],
-                    #                                    row["payroll_name"]))
+                    print('carthid = {0}, '
+                          'Fullname = {1}'.format(row["carth_id"],
+                                                       row["payroll_name"]))
                     # print('Birthdate = ' + row["birth_date"])
                     if row["carth_id"] == "":
                         SUBJECT = 'No Carthage ID'
@@ -279,10 +281,10 @@ def main():
                                 key=settings.INFORMIX_DEBUG
                             ).fetchall()
                         ret = list(data_result)
-                        # print(ret)
+                        print(ret)
                         # if ret is None:
                         if len(ret) == 0:
-                            # print("No Matching Record found - Insert")
+                            print("No Matching Record found - Insert")
                             ##############################################
                             # STEP 4b--
                             # Write entire row to cc_adp_rec table
@@ -297,12 +299,13 @@ def main():
                                 # print("ERROR = " + e.message)
                         else:
                             pass
-                            # print("Found Record - do not insert duplicate")
+                            print("Found Record - do not insert duplicate")
 
             except Exception as e:
                 # print(repr(e))
-                fn_write_error("Error in cc_adp_rec.py Step 4, Error = " + repr(e))
-                # sendmail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+                fn_write_error("Error in cc_adp_rec.py Step 4, Error = "
+                               + repr(e))
+                # fn_send_mail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
                 #          "Error in cc_adp_rec.py, Error = " + repr(e),
                 #          "Error in cc_adp_rec.py")
 
@@ -312,7 +315,7 @@ def main():
         print("Error in cc_adp_rec.py, Error = " + repr(e))
         # fn_write_error("Error in cc_adp_rec.py - Main: "
         #                + repr(e))
-        # sendmail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+        # fn_send_mail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
         #          "Error in cc_adp_rec.py, Error = " + repr(e),
         #          "Error in cc_adp_rec.py")
         # finally:
