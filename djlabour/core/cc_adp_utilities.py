@@ -70,7 +70,7 @@ def fn_format_phone(phone):
                        + repr(e))
 
 
-def WRITE_HEADER(filename):
+def fn_write_header(filename):
     with open(filename, 'w') as file_out:
         # Write header row
         csvWriter = csv.writer(file_out)
@@ -114,7 +114,7 @@ def WRITE_HEADER(filename):
         file_out.close()
 
 
-def WRITE_ADP_HEADER(filename):
+def fn_write_adp_header(filename):
     csv.register_dialect('myDialect',
                          quoting=csv.QUOTE_ALL,
                          skipinitialspace=True)
@@ -175,7 +175,7 @@ def WRITE_ADP_HEADER(filename):
     file_out.close()
 
 
-def WRITE_ROW_REFORMATTED(filename, row):
+def fn_write_row_reformatted(filename, row):
     try:
         ethnic_code = {
             'Not Hispanic or Latino': 'N',
@@ -328,6 +328,36 @@ def fn_write_error(msg):
 def fn_clear_logger():
     logging.shutdown()
     return("Clear Logger")
+
+def fn_send_mail(to, frum, body, subject):
+    """
+    Stock sendmail in core does not have reply to or split of to emails
+    --email to addresses may come as list
+    """
+
+    server = smtplib.SMTP('localhost')
+
+    try:
+        msg = MIMEText(body)
+        msg['To'] = to
+        msg['From'] = frum
+        msg['Subject'] = subject
+        txt = msg.as_string()
+
+        # print(msg['To'])
+        # print(msg['From'])
+        server.sendmail(frum, to.split(','), txt)
+
+    except Exception as e:
+        print(
+                "Error in utilities.py fn_send_mail:  " + repr(e))
+        # fn_write_error(
+        #     "Error in utilities.py fn_send_mail.py:" + repr(e))
+
+    finally:
+        server.quit()
+        # print("Done")
+        pass
 
 
 # def fn_write_log(msg):
