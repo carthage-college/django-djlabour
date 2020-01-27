@@ -3,7 +3,6 @@ import sys
 import pysftp
 import csv
 import codecs
-# import warnings
 from datetime import datetime
 import time
 from time import strftime
@@ -57,12 +56,8 @@ parser.add_argument(
     dest="database"
 )
 
-# This is a hack to get rid of a warning message paramico, cryptography
-# warnings.filterwarnings(action='ignore',module='.*paramiko.*')
-
-#sFTP fetch (GET) downloads the file from ADP file from server
-
 def file_download():
+    # sFTP fetch (GET) downloads the file from ADP file from server
     # print("Get ADP File")
     cnopts = pysftp.CnOpts()
     cnopts.hostkeys = None
@@ -108,8 +103,6 @@ def file_download():
 
 
 def main():
-    # set start_time in order to see how long script takes to execute
-    start_time = time.time()
 
     ##########################################################################
     # ==> python cc_adp_rec.py --database=train --test
@@ -117,10 +110,11 @@ def main():
     ##########################################################################
 
     # # Defines file names and directory location
+    print(settings.ADP_CSV_OUTPUT)
 
     # For testing use last file
-    new_adp_file = settings.ADP_CSV_OUTPUT + "ADPtoCXLast.csv"
-    # new_adp_file = settings.ADP_CSV_OUTPUT + "ADPtoCX.csv"
+    # new_adp_file = settings.ADP_CSV_OUTPUT + "ADPtoCXLast.csv"
+    new_adp_file = settings.ADP_CSV_OUTPUT + "ADPtoCX.csv"
 
     adp_view_file = settings.ADP_CSV_OUTPUT + "adptocxview.csv"
     adp_diff_file = settings.ADP_CSV_OUTPUT + "different.csv"
@@ -153,7 +147,6 @@ def main():
         #################################################################
         if not test:
             file_download()
-            # print("file downloaded")
 
         #################################################################
         # STEP 1--
@@ -236,70 +229,78 @@ def main():
 
             try:
                 for row in d_reader:
-                    print('carthid = {0}, '
-                          'Fullname = {1}'.format(row["carth_id"],
-                                                       row["payroll_name"]))
-                    # print('Birthdate = ' + row["birth_date"])
-                    if row["carth_id"] == "":
-                        SUBJECT = 'No Carthage ID'
-                        BODY = "No Carthage ID for " + row['payroll_name']
-                        # print("No Carthage ID for " + row['payroll_name'])
-                        fn_write_error("No Carthage ID for "
-                                       + row['payroll_name'])
-                        # sendmail(settings.ADP_TO_EMAIL,
-                        # settings.ADP_FROM_EMAIL,
-                        #     BODY, SUBJECT
-                        # )
-
-                    elif row["file_number"] == "":
-                        fn_write_error("No ADP File Number for "
-                                       + row['payroll_name'])
-                        SUBJECT = 'No ADP File Number'
-                        BODY = "No ADP File Number for " + row['payroll_name']
-                        # sendmail(settings.ADP_TO_EMAIL,
-                        # settings.ADP_FROM_EMAIL,
-                        #          BODY, SUBJECT)
+                    if row["job_title_code"] == "":
+                        # print('No Job for = {0}, '
+                        #       'Fullname = {1}'.format(row["carth_id"],
+                        #                               row["payroll_name"]))
+                        pass
                     else:
+                        print('carthid = {0}, '
+                              'Fullname = {1}'.format(row["carth_id"],
+                                                        row["payroll_name"]))
 
-                        #####################################################
-                        # STEP 4a--
-                        # Make sure record is not already in cc_adp_rec
-                        # Limitations on filtering the ADP report
-                        # allow rare cases
-                        # of identical rows in report.
-                        #####################################################
-                        # try:
+                        if row["carth_id"] == "":
+                            SUBJECT = 'No Carthage ID'
+                            BODY = "No Carthage ID for " + row['payroll_name']
+                            # print("No Carthage ID for " +
+                            # row['payroll_name'])
+                            fn_write_error("No Carthage ID for "
+                                           + row['payroll_name'])
+                            # sendmail(settings.ADP_TO_EMAIL,
+                            # settings.ADP_FROM_EMAIL,
+                            #     BODY, SUBJECT
+                            # )
 
-                        verifyqry = Q_CC_ADP_VERIFY(row)
-                        # print(verifyqry)
-                        # break
-
-                        connection = get_connection(EARL)
-                        with connection:
-                            data_result = xsql(
-                                verifyqry, connection,
-                                key=settings.INFORMIX_DEBUG
-                            ).fetchall()
-                        ret = list(data_result)
-                        print(ret)
-                        # if ret is None:
-                        if len(ret) == 0:
-                            print("No Matching Record found - Insert")
-                            ##############################################
-                            # STEP 4b--
-                            # Write entire row to cc_adp_rec table
-                            ##############################################
-                            try:
-                                INS_CC_ADP_REC(row, EARL)
-                            except Exception as e:
-                                fn_write_error("Error in adptcx.py while "
-                                               "inserting into cc_adp_rec "
-                                               "Error = " + repr(e))
-                                continue
-                                # print("ERROR = " + e.message)
+                        elif row["file_number"] == "":
+                            fn_write_error("No ADP File Number for "
+                                           + row['payroll_name'])
+                            SUBJECT = 'No ADP File Number'
+                            BODY = "No ADP File Number for " + \
+                                   row['payroll_name']
+                            # sendmail(settings.ADP_TO_EMAIL,
+                            # settings.ADP_FROM_EMAIL,
+                            #          BODY, SUBJECT)
                         else:
-                            pass
-                            print("Found Record - do not insert duplicate")
+
+                            ##################################################
+                            # STEP 4a--
+                            # Make sure record is not already in cc_adp_rec
+                            # Limitations on filtering the ADP report
+                            # allow rare cases
+                            # of identical rows in report.
+                            ##################################################
+                            # try:
+
+                            verifyqry = Q_CC_ADP_VERIFY(row)
+                            # print(verifyqry)
+                            # break
+
+                            connection = get_connection(EARL)
+                            with connection:
+                                data_result = xsql(
+                                    verifyqry, connection,
+                                    key=settings.INFORMIX_DEBUG
+                                ).fetchall()
+                            ret = list(data_result)
+                            print(ret)
+                            # if ret is None:
+                            if len(ret) == 0:
+                                print("No Matching Record found - Insert")
+                                ##############################################
+                                # STEP 4b--
+                                # Write entire row to cc_adp_rec table
+                                ##############################################
+                                try:
+                                    INS_CC_ADP_REC(row, EARL)
+                                except Exception as e:
+                                    fn_write_error("Error in adptcx.py while "
+                                                   "inserting into cc_adp_rec "
+                                                   "Error = " + repr(e))
+                                    continue
+                                    # print("ERROR = " + e.message)
+                            else:
+                                pass
+                                print("Found Record - do not insert duplicate")
 
             except Exception as e:
                 # print(repr(e))
@@ -312,15 +313,12 @@ def main():
         f.close()
 
     except Exception as e:
-        print("Error in cc_adp_rec.py, Error = " + repr(e))
-        # fn_write_error("Error in cc_adp_rec.py - Main: "
-        #                + repr(e))
+        # print("Error in cc_adp_rec.py, Error = " + repr(e))
+        fn_write_error("Error in cc_adp_rec.py - Main: "
+                       + repr(e))
         # fn_send_mail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
         #          "Error in cc_adp_rec.py, Error = " + repr(e),
         #          "Error in cc_adp_rec.py")
-        # finally:
-        #     logging.shutdown()
-
 
 if __name__ == "__main__":
     args = parser.parse_args()
