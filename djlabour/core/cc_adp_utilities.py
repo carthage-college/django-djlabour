@@ -8,6 +8,12 @@ from time import strftime, strptime
 import argparse
 import shutil
 import logging
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
+from email import encoders
+
 from logging.handlers import SMTPHandler
 
 # django settings for script
@@ -344,15 +350,15 @@ def fn_send_mail(to, frum, body, subject):
         msg['Subject'] = subject
         txt = msg.as_string()
 
-        # print(msg['To'])
-        # print(msg['From'])
+        print(msg['To'])
+        print(msg['From'])
         server.sendmail(frum, to.split(','), txt)
 
     except Exception as e:
-        print(
-                "Error in utilities.py fn_send_mail:  " + repr(e))
-        # fn_write_error(
-        #     "Error in utilities.py fn_send_mail.py:" + repr(e))
+        # print(
+        #         "Error in utilities.py fn_send_mail:  " + repr(e))
+        fn_write_error(
+             "Error in utilities.py fn_send_mail.py:" + repr(e))
 
     finally:
         server.quit()
