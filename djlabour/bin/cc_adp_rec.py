@@ -57,6 +57,10 @@ parser.add_argument(
 )
 
 def file_download():
+    if test:
+        adp_csv_output = "/home/dsullivan/djlabour/djlabour/testdata/"
+    else:
+        adp_csv_output = settings.ADP_CSV_OUTPUT
     # sFTP fetch (GET) downloads the file from ADP file from server
     # print("Get ADP File")
     cnopts = pysftp.CnOpts()
@@ -84,7 +88,7 @@ def file_download():
                 # set local directory for which the ADP file will be
                 # downloaded to
                 local_dir = ('{0}'.format(
-                    settings.ADP_CSV_OUTPUT
+                    adp_csv_output
                 ))
                 localpath = local_dir + remotefile
                 # GET file from sFTP server and download it to localpath
@@ -97,7 +101,11 @@ def file_download():
         except Exception as e:
             # print("Error in cc_adp_rec.py- File download, " + e.message)
             fn_write_error("Error in cc_adp_rec.py - File download, "
-                           "adptocx.csv not found, " + e.message)
+                           "adptocx.csv not found, " +  repr(e))
+            fn_send_mail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+                "Error in cc_adp_rec.py - File download, "
+                "adptocx.csv not found," + repr(e),
+                "Error in cc_adp_rec.py - File download")
 
     sftp.close()
 
@@ -110,15 +118,19 @@ def main():
     ##########################################################################
 
     # # Defines file names and directory location
-    print(settings.ADP_CSV_OUTPUT)
+    if test:
+        adp_csv_output = "/home/dsullivan/djlabour/djlabour/testdata/"
+    else:
+        adp_csv_output = settings.ADP_CSV_OUTPUT
+        print(adp_csv_output)
 
     # For testing use last file
-    # new_adp_file = settings.ADP_CSV_OUTPUT + "ADPtoCXLast.csv"
-    new_adp_file = settings.ADP_CSV_OUTPUT + "ADPtoCX.csv"
+    # new_adp_file = adp_csv_output + "ADPtoCXLast.csv"
+    new_adp_file = adp_csv_output + "ADPtoCX.csv"
 
-    adp_view_file = settings.ADP_CSV_OUTPUT + "adptocxview.csv"
-    adp_diff_file = settings.ADP_CSV_OUTPUT + "different.csv"
-    adptocx_reformatted = settings.ADP_CSV_OUTPUT + "ADPtoCX_Reformatted.csv"
+    adp_view_file = adp_csv_output + "adptocxview.csv"
+    adp_diff_file = adp_csv_output + "different.csv"
+    adptocx_reformatted = adp_csv_output + "ADPtoCX_Reformatted.csv"
 
     # First remove yesterdays file of updates
     if os.path.isfile(adp_diff_file):
@@ -167,14 +179,14 @@ def main():
             for row in d_reader:
                 fn_write_row_reformatted(adptocx_reformatted, row)
         f.close()
-        print("Created Reformatted file")
+        # print("Created Reformatted file")
 
         #################################################################
         # STEP 3--
         # Instead of using the ADP last file for comparison, use instead
         # the data that is currently in cc_adp_rec so we know we are current
         #################################################################
-        fn_write_adp_header(settings.ADP_CSV_OUTPUT + "adptocxview.csv")
+        fn_write_adp_header(adp_csv_output + "adptocxview.csv")
 
         connection = get_connection(EARL)
         with connection:
@@ -190,7 +202,7 @@ def main():
             for row in ret:
                 csvWriter.writerow(row)
         file_out.close()
-        print("Created view file")
+        # print("Created view file")
 
         #################################################################
         # Read in both files and compare
@@ -242,14 +254,14 @@ def main():
                         if row["carth_id"] == "":
                             SUBJECT = 'No Carthage ID'
                             BODY = "No Carthage ID for " + row['payroll_name']
-                            # print("No Carthage ID for " +
-                            # row['payroll_name'])
+                            print("No Carthage ID for " +
+                            row['payroll_name'])
                             fn_write_error("No Carthage ID for "
                                            + row['payroll_name'])
-                            # sendmail(settings.ADP_TO_EMAIL,
-                            # settings.ADP_FROM_EMAIL,
-                            #     BODY, SUBJECT
-                            # )
+                            sendmail(settings.ADP_TO_EMAIL,
+                            settings.ADP_FROM_EMAIL,
+                                BODY, SUBJECT
+                            )
 
                         elif row["file_number"] == "":
                             fn_write_error("No ADP File Number for "
@@ -297,7 +309,7 @@ def main():
                                                    "inserting into cc_adp_rec "
                                                    "Error = " + repr(e))
                                     continue
-                                    # print("ERROR = " + e.message)
+
                             else:
                                 pass
                                 print("Found Record - do not insert duplicate")
@@ -306,9 +318,10 @@ def main():
                 # print(repr(e))
                 fn_write_error("Error in cc_adp_rec.py Step 4, Error = "
                                + repr(e))
-                # fn_send_mail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
-                #          "Error in cc_adp_rec.py, Error = " + repr(e),
-                #          "Error in cc_adp_rec.py")
+                fn_send_mail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+                         "Error in cc_adp_rec.py, at reading diff file.  "
+                         "Error = " + repr(e),
+                         "Error in cc_adp_rec.py")
 
         f.close()
 
@@ -316,9 +329,9 @@ def main():
         # print("Error in cc_adp_rec.py, Error = " + repr(e))
         fn_write_error("Error in cc_adp_rec.py - Main: "
                        + repr(e))
-        # fn_send_mail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
-        #          "Error in cc_adp_rec.py, Error = " + repr(e),
-        #          "Error in cc_adp_rec.py")
+        fn_send_mail(settings.ADP_TO_EMAIL, settings.ADP_FROM_EMAIL,
+                 "Error in cc_adp_rec.py, Error = " + repr(e),
+                 "Error in cc_adp_rec.py")
 
 if __name__ == "__main__":
     args = parser.parse_args()
