@@ -118,11 +118,11 @@ def main():
     ##########################################################################
 
     # # Defines file names and directory location
-    if test:
-        adp_csv_output = "/home/dsullivan/djlabour/djlabour/testdata/"
-    else:
-        adp_csv_output = settings.ADP_CSV_OUTPUT
-        print(adp_csv_output)
+    # if test:
+    #     adp_csv_output = "/home/dsullivan/djlabour/djlabour/testdata/"
+    # else:
+    adp_csv_output = settings.ADP_CSV_OUTPUT
+    # print(adp_csv_output)
 
     # For testing use last file
     # new_adp_file = adp_csv_output + "ADPtoCXLast.csv"
@@ -303,7 +303,13 @@ def main():
                                 # Write entire row to cc_adp_rec table
                                 ##############################################
                                 try:
-                                    INS_CC_ADP_REC(row, EARL)
+                                    rt = INS_CC_ADP_REC(row, EARL)
+                                    print(rt[0])
+                                    connection = get_connection(EARL)
+                                    with connection:
+                                        cur = connection.cursor()
+                                        cur.execute(rt[0], rt[1])
+
                                 except Exception as e:
                                     fn_write_error("Error in adptcx.py while "
                                                    "inserting into cc_adp_rec "
