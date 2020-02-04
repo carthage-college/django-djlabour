@@ -247,15 +247,15 @@ def main():
                         #                               row["payroll_name"]))
                         pass
                     else:
-                        print('carthid = {0}, '
-                              'Fullname = {1}'.format(row["carth_id"],
-                                                        row["payroll_name"]))
+                        # print('carthid = {0}, '
+                        #       'Fullname = {1}'.format(row["carth_id"],
+                        #                                 row["payroll_name"]))
 
                         if row["carth_id"] == "":
                             SUBJECT = 'No Carthage ID'
                             BODY = "No Carthage ID for " + row['payroll_name']
-                            print("No Carthage ID for " +
-                            row['payroll_name'])
+                            # print("No Carthage ID for " +
+                            # row['payroll_name'])
                             fn_write_error("No Carthage ID for "
                                            + row['payroll_name'])
                             sendmail(settings.ADP_TO_EMAIL,
@@ -294,17 +294,17 @@ def main():
                                     key=settings.INFORMIX_DEBUG
                                 ).fetchall()
                             ret = list(data_result)
-                            print(ret)
+                            # print(ret)
                             # if ret is None:
                             if len(ret) == 0:
-                                print("No Matching Record found - Insert")
+                                # print("No Matching Record found - Insert")
                                 ##############################################
                                 # STEP 4b--
                                 # Write entire row to cc_adp_rec table
                                 ##############################################
                                 try:
                                     rt = INS_CC_ADP_REC(row, EARL)
-                                    print(rt[0])
+                                    # print(rt[0])
                                     connection = get_connection(EARL)
                                     with connection:
                                         cur = connection.cursor()
@@ -318,7 +318,7 @@ def main():
 
                             else:
                                 pass
-                                print("Found Record - do not insert duplicate")
+                                # print("Found Record - do not insert duplicate")
 
             except Exception as e:
                 # print(repr(e))
