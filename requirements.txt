@@ -1,5 +1,6 @@
-Django==2.2.8
+Django==2.2.9
 mysqlclient==1.4.6
 python-ldap==3.2.0
 pyodbc==4.0.27
 pycryptodome==3.9.4
+pysftp==0.2.9
