@@ -254,14 +254,13 @@ def main():
                         if row["carth_id"] == "":
                             SUBJECT = 'No Carthage ID'
                             BODY = "No Carthage ID for " + row['payroll_name']
-                            # print("No Carthage ID for " +
-                            # row['payroll_name'])
+
                             fn_write_error("No Carthage ID for "
                                            + row['payroll_name'])
-                            sendmail(settings.ADP_TO_EMAIL,
-                            settings.ADP_FROM_EMAIL,
-                                BODY, SUBJECT
-                            )
+                            fn_send_mail(settings.ADP_TO_EMAIL,
+                                         settings.ADP_FROM_EMAIL,
+                                         BODY, SUBJECT)
+                            
 
                         elif row["file_number"] == "":
                             fn_write_error("No ADP File Number for "
@@ -269,9 +268,9 @@ def main():
                             SUBJECT = 'No ADP File Number'
                             BODY = "No ADP File Number for " + \
                                    row['payroll_name']
-                            # sendmail(settings.ADP_TO_EMAIL,
-                            # settings.ADP_FROM_EMAIL,
-                            #          BODY, SUBJECT)
+                            fn_send_mail(settings.ADP_TO_EMAIL,
+                                         settings.ADP_FROM_EMAIL,
+                                         BODY, SUBJECT)
                         else:
 
                             ##################################################
