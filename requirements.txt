@@ -1,4 +1,4 @@
-Django==2.2.14
+Django==2.2.22
 mysqlclient==1.4.6
 python-ldap==3.2.0
 pyodbc==4.0.27
