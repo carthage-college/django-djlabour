@@ -9,6 +9,8 @@ from logging.handlers import SMTPHandler
 # django settings for script
 from django.conf import settings
 
+from djimix.core.utils import get_connection, xsql
+
 # from djequis.core.utils import sendmail
 # from djzbar.utils.informix import do_sql
 # from djzbar.utils.informix import get_engine
@@ -42,26 +44,30 @@ def fn_validate_field(searchval, keyfield, retfield, table, keytype, EARL):
                    + " WHERE " + keyfield + " = " + str(searchval)
     # print("Validate Field SQL = " + qval_sql)
     try:
-        sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
+        connection = get_connection(EARL)
+        with connection:
+            sql_val = xsql(
+                qval_sql, connection,
+                key=settings.INFORMIX_DEBUG
+            ).fetchall()
+        # sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
         # print("sql_val = " + str(sql_val))
         if sql_val is not None:
-            row = sql_val.fetchone()
-            if row is not None:
-                return row[0]
-            else:
-                if keytype == "char":
-                    return ""
-                else:
-                    return 0
+            return sql_val[0]
         else:
             if keytype == "char":
                 return ""
             else:
                 return 0
+    # else:
+    #         if keytype == "char":
+    #             return ""
+    #         else:
+    #             return 0
 
     except Exception as e:
         fn_write_error("Error in Utilities.py - fn_validate_field.  Error = "
-                       + e.message)
+                       + repr(e))
         if keytype == "char":
             return ""
         else:
@@ -88,7 +94,7 @@ def fn_needs_update(searchval, descr_val, keyfield, descr_field,
                    # + " AND " + descr_field + " = '" + descr_val + "'"
     # print("fn_needs_upate Field SQL = " + qval_sql)
     try:
-        sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
+        # sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
         # print("sql_val = " + str(sql_val))
         if sql_val is not None:
             row = sql_val.fetchone()
@@ -129,7 +135,7 @@ def fn_check_duplicates(searchval, keyfield, retfield, table, testval,
                    + " AND " + retfield + " != " + str(testval)
     #print(qval_sql)
     try:
-        sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
+        # sql_val = do_sql(qval_sql, key=DEBUG, earl=EARL)
         if sql_val is not None:
             row = sql_val.fetchone()
             if row is None:

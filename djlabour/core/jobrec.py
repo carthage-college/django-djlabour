@@ -7,9 +7,7 @@ from time import strftime
 # django settings for script
 from django.conf import settings
 
-# from djequis.core.utils import sendmail
-from djzbar.utils.informix import do_sql
-from djzbar.utils.informix import get_engine
+from djimix.core.utils import get_connection, xsql
 
 # Imports for additional modules and functions written as part of this project
 from djequis.adp.utilities import fn_validate_field, fn_write_log, fn_write_error, fn_needs_update
@@ -34,7 +32,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 jobfunctioncode, jobfuncdtiondescription, jobclass,
                 jobclassdescr, primaryposition, supervisorid, last, first,
                 middle,EARL):
-    engine = get_engine(EARL)
+    # engine = get_engine(EARL)
 
     try:
         ##############################################################
@@ -137,7 +135,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                              datetime.now().strftime("%m/%d/%Y"))
               # print(q_ins_wc)
              # print(q_ins_wc_args)
-            engine.execute(q_ins_wc, q_ins_wc_args)
+            # engine.execute(q_ins_wc, q_ins_wc_args)
             fn_write_log("Inserted into cc_work_cat_table, code = " + workercatcode)
             scr.write(q_ins_wc + '\n' + str(q_ins_wc_args) + '\n')
         else:
@@ -149,8 +147,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 q_upd_wc_args = (workercatdescr, workercatcode)
                 # print(q_upd_wc)
                 # print(q_upd_wc_args)
-                engine.execute(q_upd_wc, q_upd_wc_args)
-                fn_write_log("Updated cc_work_cat_table, code = " + workercatcode)
+                # engine.execute(q_upd_wc, q_upd_wc_args)
+                # fn_write_log("Updated cc_work_cat_table, code = " + workercatcode)
                 scr.write(q_upd_wc + '\n' + str(q_upd_wc_args) + '\n')
 
             ##############################################################
@@ -189,13 +187,13 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                           WHERE hrclass = ?'''
                         q_hrclass_upd_args = (jobclassdescr, jobclass)
 
-                        engine.execute(q_hrclass_upd, q_hrclass_upd_args)
+                        # engine.execute(q_hrclass_upd, q_hrclass_upd_args)
                         scr.write(q_upd_dept + '\n' + str(q_hrclass_upd_args) + '\n');
-                        fn_write_log("Updated hrclass_table, code = " + jobclass)
+                        # fn_write_log("Updated hrclass_table, code = " + jobclass)
                     else:
                         #print("No change in HRClass Description")
-                        fn_write_log('There were no changes in HRClass '
-                                     'description.\n');
+                        # fn_write_log('There were no changes in HRClass '
+                        #              'description.\n');
 
             # else:
                 # print("No Job Class")
@@ -217,9 +215,9 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                               datetime.now().strftime("%m/%d/%Y"))
             # print("New HR Division = " + businessunitcode[:4]  + '\n')
             # print(q_ins_div + str(q_ins_div_args))
-            fn_write_log(
-                "Inserted into hrdiv_table, code = " + businessunitcode[:4])
-            engine.execute(q_ins_div, q_ins_div_args)
+            # fn_write_log(
+            #     "Inserted into hrdiv_table, code = " + businessunitcode[:4])
+            # engine.execute(q_ins_div, q_ins_div_args)
             scr.write(q_ins_div + '\n' + str(q_ins_div_args) + '\n')
         elif hrdivision == "":
             q_ins_div = '''
@@ -229,8 +227,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                                 datetime.now().strftime("%m/%d/%Y"))
             # print("New HR Division = " + businessunitcode[:4]  + '\n')
             # print(q_ins_div + str(q_ins_div_args))
-            fn_write_log("Inserted into hrdiv_table, code = " + businessunitcode[:4])
-            engine.execute(q_ins_div, q_ins_div_args)
+            # fn_write_log("Inserted into hrdiv_table, code = " + businessunitcode[:4])
+            # engine.execute(q_ins_div, q_ins_div_args)
             scr.write(q_ins_div + '\n' + str(q_ins_div_args) + '\n')
         else:
             if hrdivision[1] != businessunitdescr:
@@ -244,8 +242,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                               businessunitcode[:4])
                 # print("Existing HR Division = " + hrdivision[0] + '\n')
                 # print(q_upd_div + str(q_upd_div_args))
-                fn_write_log("Updated hrdiv_table, code = " + businessunitcode[:4])
-                engine.execute(q_upd_div, q_upd_div_args)
+                # fn_write_log("Updated hrdiv_table, code = " + businessunitcode[:4])
+                # engine.execute(q_upd_div, q_upd_div_args)
                 scr.write(q_upd_div + '\n' + str(q_upd_div_args) + '\n');
 
         # print("Home Dept Code = " + homedeptcode[:3])
@@ -266,8 +264,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                                datetime.now().strftime("%m/%d/%Y"),None)
             # print(q_ins_dept)
             # print(q_ins_dept_args)
-            engine.execute(q_ins_dept, q_ins_dept_args)
-            fn_write_log("Inserted into hrdept_table, code = " + homedeptcode[:3])
+            # engine.execute(q_ins_dept, q_ins_dept_args)
+            # fn_write_log("Inserted into hrdept_table, code = " + homedeptcode[:3])
             scr.write(q_ins_dept + '\n' + str(q_ins_dept_args) + '\n');
         else:
             # print("Update Dept")
@@ -280,8 +278,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                                    datetime.now().strftime("%m/%d/%Y"), func_code)
                 # print(q_upd_dept)
                 # print(q_upd_dept_args)
-                engine.execute(q_upd_dept, q_upd_dept_args)
-                fn_write_log("Updated hrdept_table, code = " + homedeptcode[:3])
+                # engine.execute(q_upd_dept, q_upd_dept_args)
+                # fn_write_log("Updated hrdept_table, code = " + homedeptcode[:3])
                 scr.write(q_upd_dept + '\n' + str(q_upd_dept_args) + '\n');
             else:
                 # Need to make sure the department is linked to the division
@@ -300,9 +298,9 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                                        func_code)
                     # print(q_upd_dept_div)
                     # print(q_upd_dept_div_args)
-                    engine.execute(q_upd_dept_div, q_upd_dept_div_args)
-                    fn_write_log(
-                        "Updated hrdept_table, code = " + homedeptcode[:3])
+                    # engine.execute(q_upd_dept_div, q_upd_dept_div_args)
+                    # fn_write_log(
+                    #     "Updated hrdept_table, code = " + homedeptcode[:3])
                     scr.write(q_upd_dept_div + '\n' + str(q_upd_dept_div_args) + '\n');
                 # else:
                    # print("Home Dept not updated " + homedeptdescr)
@@ -336,8 +334,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                                 datetime.now().strftime("%m/%d/%Y"),'')
             # print(q_ins_pos)
             # print(q_ins_pos_args)
-            engine.execute(q_ins_pos, q_ins_pos_args)
-            fn_write_log("Inserted into pos_table, code = " + pcnaggr)
+            # engine.execute(q_ins_pos, q_ins_pos_args)
+            # fn_write_log("Inserted into pos_table, code = " + pcnaggr)
             scr.write(q_ins_pos + '\n' + str(q_ins_pos_args) + '\n')
             # Need to return the tpos_no as it is created in the INSERT
 
@@ -376,8 +374,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                                   v_tpos)
                 # print(q_upd_pos)
                 # print(q_upd_pos_args)
-                fn_write_log("Updated pos_table, code = " + pcnaggr)
-                engine.execute(q_upd_pos, q_upd_pos_args)
+                # fn_write_log("Updated pos_table, code = " + pcnaggr)
+                # engine.execute(q_upd_pos, q_upd_pos_args)
                 scr.write(q_upd_pos + '\n' + str(q_upd_pos_args) + '\n')
 
         ##############################################################
@@ -456,7 +454,7 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                 q_end_job_args = (datetime.now().strftime("%m/%d/%Y"), carthid, exst_row[2])
                 # print(q_end_job)
                 # print(q_end_job_args)
-                engine.execute(q_end_job, q_end_job_args)
+                # engine.execute(q_end_job, q_end_job_args)
                 scr.write(q_end_job + '\n' + str(q_end_job_args) + '\n')
 
         q_get_job = '''
@@ -500,9 +498,9 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
                               jobtitledescr, rank, workercatcode, jobclass)
             print(q_ins_job + str(q_ins_job_args))
             # print("New Job Record for " + last + ', id = ' + str(carthid))
-            engine.execute(q_ins_job, q_ins_job_args)
-            fn_write_log("Inserted into job_rec, tpos = " + str(v_tpos)
-                         + " Description = " + jobtitledescr + " ID = " + str(carthid))
+            # engine.execute(q_ins_job, q_ins_job_args)
+            # fn_write_log("Inserted into job_rec, tpos = " + str(v_tpos)
+            #              + " Description = " + jobtitledescr + " ID = " + str(carthid))
             scr.write(q_ins_job + str(q_ins_job_args) + '\n')
 
         else:
@@ -525,9 +523,9 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             print(q_upd_job)
             print(q_upd_job_args)
             # print("Update Job Record for " + last + ', id = ' + str(carthid))
-            engine.execute(q_upd_job, q_upd_job_args)
-            fn_write_log("Updated job_rec, tpos = " + str(v_tpos)
-                         + " Description = " + jobtitledescr + " ID = " + str(carthid))
+            # engine.execute(q_upd_job, q_upd_job_args)
+            # fn_write_log("Updated job_rec, tpos = " + str(v_tpos)
+            #              + " Description = " + jobtitledescr + " ID = " + str(carthid))
             scr.write(q_upd_job + '\n' + str(q_upd_job_args) + '\n')
 
 
@@ -579,8 +577,8 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             #print(q_emp_insert)
             #print(q_emp_ins_args)
             #print("Insert into hremp_rec")
-            engine.execute(q_emp_insert, q_emp_ins_args)
-            fn_write_log("Inserted into hremp_rec, home_tpos_no = " + str(v_tpos) + " ID = " + str(carthid))
+            # engine.execute(q_emp_insert, q_emp_ins_args)
+            # fn_write_log("Inserted into hremp_rec, home_tpos_no = " + str(v_tpos) + " ID = " + str(carthid))
             scr.write(q_emp_insert + '\n' + str(q_emp_ins_args) + '\n')
         else:
             # print('Found Emp Rec')
@@ -597,9 +595,9 @@ def fn_process_job(carthid, workercatcode, workercatdescr, businessunitcode,
             #print(q_emp_upd)
             #print(q_emp_upd_args)
             # print("Update HREMP_REC")
-            engine.execute(q_emp_upd, q_emp_upd_args)
-            fn_write_log("Updated hremp_rec, home_tpos_no = " + str(v_tpos)
-                         + " ID = " + str(carthid))
+            # engine.execute(q_emp_upd, q_emp_upd_args)
+            # fn_write_log("Updated hremp_rec, home_tpos_no = " + str(v_tpos)
+            #              + " ID = " + str(carthid))
             scr.write(q_emp_upd + '\n' + str(q_emp_upd_args) + '\n');
 
         ##############################################################

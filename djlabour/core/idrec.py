@@ -1,9 +1,11 @@
 # django settings for script
 from django.conf import settings
 
-from djequis.core.utils import sendmail
-from djzbar.utils.informix import get_engine
-from djzbar.utils.informix import do_sql
+from djimix.core.utils import get_connection, xsql
+
+# from djequis.core.utils import sendmail
+# from djzbar.utils.informix import get_engine
+# from djzbar.utils.informix import do_sql
 
 
 # Imports for additional modules and functions written as part of this project
@@ -29,7 +31,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname,
         middlename, title, addr_line1, addr_line2, addr_line3, city, st,
         zip, ctry, ctry_cod, ss_no, phone, decsd, eff_date, EARL):
     print("Start ID Rec Processing")
-    engine = get_engine(EARL)
+    # engine = get_engine(EARL)
 
     v_id = fn_validate_field(carth_id, "id", "id", "id_rec", "integer",
                               EARL)
@@ -60,7 +62,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname,
                          ", ID = " + str(carth_id))
             scr.write(q_update_id_rec + '\n' + str(q_update_id_args) + '\n');
             # logger.info("Update id_rec table");
-            engine.execute(q_update_id_rec, q_update_id_args)
+            # engine.execute(q_update_id_rec, q_update_id_args)
         except Exception as err:
             # print(err.message)
             return (err.message)
@@ -158,7 +160,7 @@ def fn_process_idrec(carth_id, file_number, fullname, lastname, firstname,
                     fn_write_log("Update address info in id_rec table for " +
                                  fullname + ", ID = " + str(carth_id) +
                                  " address = " + addr_line1)
-                    engine.execute(q_update_id_rec_addr, q_update_id_addr_args)
+                    # engine.execute(q_update_id_rec_addr, q_update_id_addr_args)
                     scr.write(q_update_id_rec_addr + '\n' + str(q_update_id_addr_args) + '\n')
 
 
