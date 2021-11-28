@@ -1,6 +1,7 @@
-Django==2.2.14
-mysqlclient==1.4.6
-python-ldap==3.2.0
-pyodbc==4.0.27
-pycryptodome==3.9.4
-pysftp==0.2.9
+cryptography>=36.0.0
+django==2.2.24
+mysqlclient>=2.1.0
+pyodbc>=4.0.32
+pysftp>=0.2.9
+python-ldap>=3.4.0
+requests>=2.26.0
