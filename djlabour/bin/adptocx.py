@@ -778,14 +778,14 @@ if __name__ == "__main__":
     database = args.database
 
     if not database:
-        print "mandatory option missing: database name\n"
+        print("mandatory option missing: database name\n")
         parser.print_help()
         exit(-1)
     else:
         database = database.lower()
 
     if database != 'cars' and database != 'train' and database != 'sandbox':
-        print "database must be: 'cars' or 'train' or 'sandbox'\n"
+        print("database must be: 'cars' or 'train' or 'sandbox'\n")
         parser.print_help()
         exit(-1)
 
